@@ -21,23 +21,25 @@ Route::get('/login', function(){
     $id=$_GET["id"];
     $pwd=$_GET["pwd"];
     $random=uniqid ();
-    $count = DB::select("select count(*) from users_sample where login = '?' and pwd= '?'", [$id,$pwd]);
-    if ($count > 0){
-        return response("{result:1,"."token:".$random."}" ,200)->header('Content-Type', 'application/json');
+    $result = DB::select("select * from users_sample where login = ? and pwd=?", [$id,$pwd]);
+    
+    if ($result){
+        $name = $result[0]->name;
+        return response()->json(['success'=>true,  "token"=>$result, "message"=>"Welcome, ".$name]);
     }else{
-        return response("{result:0}",200)->header('Content-Type', 'application/json');
+        return response()->json(['success'=>false,"token"=>"", "message"=>"Invalid login."],);
     }
 });
 
 Route::get('/register',  function(){
     $id=$_GET["id"];
     $pwd=$_GET["pwd"];
-    $count = DB::select("select count(*) from users_sample where login = '?'", [$id]);
-    if ($count > 0){
-        return response(0,200)->header('Content-Type', 'application/json');
+    $name=$_GET["name"];
+    $count = DB::select("select count(*) as count from users_sample where login= ?", [$id]);
+    if ($count[0] -> count > 0){
+        return response()->json(['success'=>false, "count"=>$count[0] -> count]);
     }else{
-    $results = DB::insert("INSERT INTO users_sample (login,pwd) VALUES (?,?)",[$id,$pwd]);
-     return response($results, 200)
-                  ->header('Content-Type', 'application/json');
+    $results = DB::insert("INSERT INTO users_sample (login,pwd,name) VALUES (?,?,?)",[$id,$pwd,$name]);
+     return response()->json(['success'=>true, "result"=>$results]);
     }
 });

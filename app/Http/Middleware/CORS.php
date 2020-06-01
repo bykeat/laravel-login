@@ -22,6 +22,5 @@ class Cors
           ->header('Access-Control-Allow-Credentials',' true');
     }
 
-use Closure;
 
 }
