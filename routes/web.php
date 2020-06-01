@@ -17,16 +17,19 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/login', array(['middleware'=>'cors', function(){
+Route::get('/login', function(){
     $id=$_GET["id"];
     $pwd=$_GET["pwd"];
+    $random=uniqid ();
     $count = DB::select("select count(*) from users_sample where login = '?' and pwd= '?'", [$id,$pwd]);
     if ($count > 0){
-        return response(0,200)->header('Content-Type', 'application/json');
+        return response("{result:1,"."token:".$random."}" ,200)->header('Content-Type', 'application/json');
+    }else{
+        return response("{result:0}",200)->header('Content-Type', 'application/json');
     }
-}]));
+});
 
-Route::get('/register', array(['middleware'=>'cors', function(){
+Route::get('/register',  function(){
     $id=$_GET["id"];
     $pwd=$_GET["pwd"];
     $count = DB::select("select count(*) from users_sample where login = '?'", [$id]);
@@ -37,4 +40,4 @@ Route::get('/register', array(['middleware'=>'cors', function(){
      return response($results, 200)
                   ->header('Content-Type', 'application/json');
     }
-}]));
+});
