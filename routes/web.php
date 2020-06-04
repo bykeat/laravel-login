@@ -18,28 +18,38 @@ Route::get('/', function () {
 });
 
 Route::get('/login', function(){
+
     $id=$_GET["id"];
     $pwd=$_GET["pwd"];
-    $random=uniqid ();
-    $result = DB::select("select * from users_sample where login = ? and pwd=?", [$id,$pwd]);
-    
+   
+    $hash=hash ("sha256",$pwd);
+    //$result = DB::select("select * from users where email = ? and password=?", [$id,$hash]);   
+    $result = DB::table('users')->where('email',$id)->where('password',$hash)->get(); 
     if ($result){
         $name = $result[0]->name;
-        return response()->json(['success'=>true,  "token"=>$result, "message"=>"Welcome, ".$name]);
+        return response()->json(['success'=>true, "message"=>"Welcome, ".$name]);
     }else{
-        return response()->json(['success'=>false,"token"=>"", "message"=>"Invalid login."],);
+        return response()->json(['success'=>false, "message"=>"Invalid login."],);
     }
 });
 
 Route::get('/register',  function(){
-    $id=$_GET["id"];
-    $pwd=$_GET["pwd"];
-    $name=$_GET["name"];
-    $count = DB::select("select count(*) as count from users_sample where login= ?", [$id]);
-    if ($count[0] -> count > 0){
-        return response()->json(['success'=>false, "count"=>$count[0] -> count]);
-    }else{
-    $results = DB::insert("INSERT INTO users_sample (login,pwd,name) VALUES (?,?,?)",[$id,$pwd,$name]);
-     return response()->json(['success'=>true, "result"=>$results]);
+     try {
+        $id=$_GET["id"];
+        $pwd=$_GET["pwd"];
+        $hash=hash ("sha256",$pwd);
+        $name=$_GET["name"];
+        //$count = DB::select("select count(*) as count from users where email= ?", [$id]); 
+        $data = DB::table('users')->where('email', [$id])->find(1);
+
+        if ($data){
+            return response()->json(['success'=>false]);
+        }else{
+            // $results = DB::insert("INSERT INTO users (email,password,name) VALUES (?,?,?)",[$id,$hash,$name]);
+            $results = DB::table('users')->insert(['email' => $id, 'password'=>$hash, 'name'=>$name]);
+            return response()->json(['success'=>true, "result"=>$results]);
+        }
+    }catch(Exception $e){
+        return response()->json(['success'=>false]);
     }
 });
