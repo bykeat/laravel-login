@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -27,12 +26,12 @@ Route::get('/login', function () {
 
         if ($result) {
             $name = $result[0]->name;
-            return response()->json(['success' => true, "message" => "Welcome, " . $name]);
+            return response()->json(['status' => 200, "message" => "Welcome, " . $name]);
         } else {
-            return response()->json(['success' => false, "message" => "Invalid login."], );
+            return response()->json(['success' => 200, "message" => "Invalid login."], );
         }
     } catch (Exception $e) {
-        return response()->json(['success' => false]);
+        return response()->json(['status' => 500]);
     }
 });
 
@@ -46,35 +45,50 @@ Route::get('/register', function () {
         $data = DB::table('users')->where('email', [$id])->find(1);
 
         if ($data) {
-            return response()->json(['success' => false]);
+            return response()->json(['status' => 200, "result" => ""]);
         } else {
             $results = DB::table('users')->insert(['email' => $id, 'password' => $hash, 'name' => $name]);
-            return response()->json(['success' => true, "result" => $results]);
+            return response()->json(['status' => 200, "result" => $results]);
         }
     } catch (Exception $e) {
-        return response()->json(['success' => false]);
+        return response()->json(['status' => 500]);
     }
 });
 
-Route::get('/route_estimation', function () {
-$json = json_encode("{name:'Hhk',age:10}");
-error_log($json -> name);
-error_log($json -> age);
+Route::get('/create_booking', function () {
     try {
+
+        date_default_timezone_set(env("TIMEZONE"));
+        $current_hour = date('H', time());
+        $day_fare_hour = env("DAY_HOUR");
+        $night_fare_hour = env("NIGHT_HOUR");
+        $fare_rate = env('DAY_RATE');
+        if (($current_hour >= $night_fare_hour) ||
+            ($current_hour < $day_fare_hour)) {
+            $fare_rate = env('NIGHT_RATE');
+        }
+
         $origin = $_GET["origin"];
         $destination = $_GET["destination"];
         error_log("origin:" . $origin . ", destination:" . $destination);
         $url = "https://maps.googleapis.com/maps/api/directions/json?key=" . env('GOOGLE_API_KEY');
         $url .= "&origin=" . $origin;
         $url .= "&destination=" . $destination;
-        error_log($url);
         $response = Http::get($url);
-        error_log($response);
-        parse
-        return response()->json(['status' => 200, 'message' => "Route calculated", 'data' => $response]);
+
+        $route_data = json_decode($response);
+        $distance_metres = $route_data->routes[0]->legs[0]->distance->value;
+        $distance_kilometres = $distance_metres / 1000;
+        $cost = round($distance_kilometres * $fare_rate, 1, PHP_ROUND_HALF_UP);
+
+        $time_text = $route_data->routes[0]->legs[0]->duration->text;
+        $distance_text = $route_data->routes[0]->legs[0]->distance->text;
+
+        $id = uniqid();
+        return response()->json(['status' => 200, 'message' => "Route calculated", 'price' => $cost, 'distance' => $distance_text, 'time' => $time_text, 'booking_id' => $id]);
     } catch (Exception $e) {
         error_log($e);
-        return response()->json(['status' => 400, 'message' => "Unable to calculate distance due to internal error."]);
+        return response()->json(['status' => 500, 'message' => "Unable to calculate distance due to internal error."]);
         $new = 1;
     }
 });
