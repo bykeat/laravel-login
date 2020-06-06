@@ -57,10 +57,24 @@ Route::get('/register', function () {
 });
 
 Route::get('/route_estimation', function () {
+$json = json_encode("{name:'Hhk',age:10}");
+error_log($json -> name);
+error_log($json -> age);
     try {
-        return response("Hello Kitty");
+        $origin = $_GET["origin"];
+        $destination = $_GET["destination"];
+        error_log("origin:" . $origin . ", destination:" . $destination);
+        $url = "https://maps.googleapis.com/maps/api/directions/json?key=" . env('GOOGLE_API_KEY');
+        $url .= "&origin=" . $origin;
+        $url .= "&destination=" . $destination;
+        error_log($url);
+        $response = Http::get($url);
+        error_log($response);
+        parse
+        return response()->json(['status' => 200, 'message' => "Route calculated", 'data' => $response]);
     } catch (Exception $e) {
-        return response("Hello No Kitty");
+        error_log($e);
+        return response()->json(['status' => 400, 'message' => "Unable to calculate distance due to internal error."]);
         $new = 1;
     }
 });
