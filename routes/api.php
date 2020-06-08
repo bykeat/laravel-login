@@ -92,7 +92,7 @@ Route::get('/confirm_booking', function () {
         if ($response === 1) {
             $json_data = array
                 (
-                'token' => $fcm_token,
+                'to' => $fcm_token,
                 'notification' => array(
                     'body' => 'Your booking ' . $booking_id . ' has confirmed.',
                     'title' => 'Booking confirmed',
