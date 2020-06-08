@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\Booking;
 use Illuminate\Support\Facades\Route;
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +14,6 @@ use Illuminate\Support\Facades\Route;
  */
 
 Route::get('/', function (Booking $booking) {
-    $booking . Hi();
-    return response()->json(['message' => "Hi."]);
+    $booking->Hi("Good luck");
+    return response()->view('Welcome');
 });
