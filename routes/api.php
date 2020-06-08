@@ -24,7 +24,7 @@ Route::get('/login', function (Booking $booking) {
         $pwd = $_GET["pwd"];
         $hash = hash("sha256", $pwd);
 
-        $result = $booking . getUserByIdAndPassword($id, $hash);
+        $result = $booking ->getUserByIdAndPassword($id, $hash);
         //DB::table('users')->where('email', $id)->where('password', $hash)->get();
         if ($result->count() > 0) {
             $name = $result[0]->name;
@@ -117,7 +117,7 @@ Route::get('/make_booking', function (Booking $booking) {
 
         $id = uniqid();
         $status = 0;
-        $booking->addBooking($fcm_token, $id, $booking_type, $pickup_time, $passengers,$origin, $destination, $fare, $status, $note);
+        $booking->addBooking($fcm_token, $id, $booking_type, $pickup_time, $passengers, $origin, $destination, $fare, $status, $note);
 
         return response()->json(['status' => 200, 'message' => "Booking created",
             'fare' => $fare, 'distance' => $distance_text,
@@ -149,7 +149,6 @@ Route::post('/login', function () {
             return response()->json(['status' => 500, "message" => "Invalid login."], );
         }
     } catch (Exception $e) {
-        error_log($e);
         return response()->json(['status' => 500, 'message' => 'Invalid input.']);
     }
 });
