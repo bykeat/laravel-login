@@ -92,12 +92,12 @@ Route::get('/confirm_booking', function () {
         if ($response === 1) {
             $json_data = array
                 (
-                    'token' => $fcm_token,
-                    'notification' => array(
-                        'body' => 'Your booking ' . $booking_id . ' has confirmed.',
-                        'title' => 'Booking confirmed',
-                    ),
-                );
+                'token' => $fcm_token,
+                'notification' => array(
+                    'body' => 'Your booking ' . $booking_id . ' has confirmed.',
+                    'title' => 'Booking confirmed',
+                ),
+            );
 
             $url = 'https://fcm.googleapis.com/fcm/send';
             $server_key = env('FCM_KEY');
@@ -189,7 +189,6 @@ Route::get('/make_booking', function () {
         $id = uniqid();
         $status = 0;
         DB::table('booking')->insert([
-            'token' => $token,
             'booking_id' => $id,
             'booking_type' => $booking_type,
             'pickup_time' => $pickup_time ? date('Y.m.d H:i:s', strtotime($pickup_time)) : "",
