@@ -24,7 +24,7 @@ Route::get('/login', function (Booking $booking) {
         $pwd = $_GET["pwd"];
         $hash = hash("sha256", $pwd);
 
-        $result = $booking ->getUserByIdAndPassword($id, $hash);
+        $result = $booking->getUserByIdAndPassword($id, $hash);
         //DB::table('users')->where('email', $id)->where('password', $hash)->get();
         if ($result->count() > 0) {
             $name = $result[0]->name;
