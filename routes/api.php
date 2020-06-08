@@ -18,27 +18,6 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/login', function () {
-    try {
-        error_log(var_dump($_POST));
-        $id = $_POST["id"];
-        $pwd = $_POST["pwd"];
-        $hash = hash("sha256", $pwd);
-
-        $result = DB::table('users')->where('email', $id)->where('password', $hash)->get();
-
-        if ($result->count() > 0) {
-            $name = $result[0]->name;
-            return response()->json(['status' => 200, "message" => "Welcome, " . $name]);
-        } else {
-            return response()->json(['status' => 500, "message" => "Invalid login."], );
-        }
-    } catch (Exception $e) {
-        error_log($e);
-        return response()->json(['status' => 500, 'message' => 'Invalid input.']);
-    }
-});
-
 Route::get('/login', function () {
     try {
         $id = $_GET["id"];
@@ -85,11 +64,12 @@ Route::get('/confirm_booking', function () {
         $fcm_token = $_GET["fcm_token"];
 
         $status = 1;
-        $response = DB::table("booking")
-            ->where("booking_id", $booking_id)
-            ->update(["status" => $status]);
-
+        $response = 1;
+        // DB::table("booking")
+        //     ->where("booking_id", $booking_id)
+        //     ->update(["status" => $status]);
         if ($response === 1) {
+            error_log("Booking confirmed!");
             $json_data = array
                 (
                 'to' => $fcm_token,
@@ -116,7 +96,10 @@ Route::get('/confirm_booking', function () {
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($json_data));
             $result = curl_exec($ch);
             if ($result === false) {
+                error_log("SENT" . $result);
                 die('FCM Send Error: ' . curl_error($ch));
+            } else {
+                error_log("ERROR" . $result);
             }
             curl_close($ch);
         }
@@ -147,6 +130,7 @@ Route::get('/make_booking', function () {
         date_default_timezone_set(env("TIMEZONE"));
 
         try {
+            $fcm_token = $_GET["fcm_token"];
             $booking_type = $_GET["booking_type"];
             $pickup_time = $_GET["pickup_time"];
             $note = $_GET["notes"];
@@ -189,6 +173,7 @@ Route::get('/make_booking', function () {
         $id = uniqid();
         $status = 0;
         DB::table('booking')->insert([
+            'fcm_token' => $fcm_token,
             'booking_id' => $id,
             'booking_type' => $booking_type,
             'pickup_time' => $pickup_time ? date('Y.m.d H:i:s', strtotime($pickup_time)) : "",
@@ -210,6 +195,28 @@ Route::get('/make_booking', function () {
         error_log($e);
         return response()->json(['status' => 500, 'message' => "Unable to calculate distance due to internal error."]);
         $new = 1;
+    }
+});
+
+//Not able to use due to CORS policy blocking POST request.
+Route::post('/login', function () {
+    try {
+        error_log(var_dump($_POST));
+        $id = $_POST["id"];
+        $pwd = $_POST["pwd"];
+        $hash = hash("sha256", $pwd);
+
+        $result = DB::table('users')->where('email', $id)->where('password', $hash)->get();
+
+        if ($result->count() > 0) {
+            $name = $result[0]->name;
+            return response()->json(['status' => 200, "message" => "Welcome, " . $name]);
+        } else {
+            return response()->json(['status' => 500, "message" => "Invalid login."], );
+        }
+    } catch (Exception $e) {
+        error_log($e);
+        return response()->json(['status' => 500, 'message' => 'Invalid input.']);
     }
 });
 
